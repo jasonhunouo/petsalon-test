@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心語米寵物美容預約</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-coral: #F28C8C; /* 珊瑚粉 */
+            --soft-pink: #FFF0F2;     /* 櫻花粉 */
+            --warm-cream: #FFF9E6;    /* 奶油黃 */
+            --warm-brown: #6D4C41;    /* 暖棕色 */
+        }
+
+        body {
+            background-color: var(--soft-pink);
+            color: var(--warm-brown);
+            font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
+            padding-bottom: 50px;
+        }
+
+        .form-container {
+            background-color: #fff;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(242, 140, 140, 0.2);
+            padding: 40px; /* 電腦版留白 */
+            margin-top: 30px;
+            border: 3px solid var(--primary-coral);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h2 {
+            color: var(--primary-coral);
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        h4 {
+            color: var(--warm-brown);
+            border-left: 5px solid var(--primary-coral);
+            padding-left: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: var(--warm-brown);
+            margin-top: 5px;
+        }
+
+        /* 輸入框樣式 */
+        .form-control, .form-select {
+            background-color: var(--warm-cream);
+            border: 2px solid #FAD0C4;
+            color: var(--warm-brown);
+            border-radius: 12px;
+            padding: 10px; /* 增加一點高度讓手機好點 */
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            border-color: var(--primary-coral);
+            box-shadow: 0 0 8px rgba(242, 140, 140, 0.4);
+        }
+
+        /* 按鈕樣式 */
+        .btn-submit {
+            background-color: var(--primary-coral);
+            color: white;
+            font-weight: 900;
+            letter-spacing: 1px;
+            padding: 15px 50px; /* 按鈕加大 */
+            border: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(242, 140, 140, 0.4);
+            width: 100%; /* 讓按鈕寬度撐滿容器 */
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #E57373;
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .btn-submit:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 合約捲軸區塊 */
+        .terms-container {
+            background-color: #fff;
+            border: 2px dashed var(--primary-coral);
+            border-radius: 15px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .article-title {
+            color: var(--primary-coral);
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 20px;
+            display: block;
+        }
+
+        .terms-list {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+
+        .final-note {
+            font-weight: bold;
+            color: #E57373;
+            margin-top: 15px;
+            text-align: center;
+            background-color: var(--soft-pink);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .text-danger { color: #dc3545 !important; }
+        .hidden { display: none; }
+
+        /* ★★★ 手機版專屬優化 (RWD) ★★★ */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px 15px; /* 縮小左右留白，讓輸入框變寬 */
+                margin-top: 15px;
+                border-radius: 15px; /* 手機版圓角稍微小一點比較好看 */
+            }
+            
+            h2 {
+                font-size: 1.5rem; /* 標題縮小 */
+            }
+
+            .terms-container {
+                height: 250px; /* 手機版合約框稍微矮一點，才不會滑不到底 */
+                padding: 15px;
+            }
+
+            /* 調整複選框的間距，避免手機上擠在一起 */
+            .d-flex.gap-3 {
+                gap: 0.5rem !important;
+            }
+            
+            .form-check {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8"> <div class="form-container">
+                <h2 class="text-center">🌸 心語米寵物美容 🌸</h2>
+                <p class="text-center" style="color: var(--primary-coral); font-weight:bold;">
+                    Service Agreement & Appointment
+                </p>
+                <p class="text-center text-muted" style="font-size: 0.9rem;">請填寫詳細資料以確保寶貝的安全與權益</p>
+
+                <form id="bookingForm">
+                    
+                    <h4>🐾 1. 飼主資料</h4>
+                    <div class="row mb-2">
+                        <div class="col-12 col-md-6 mb-3"> <label class="form-label">飼主姓名 <span class="text-danger">*</span></label>
+                            <input type="text" id="OwnerName" class="form-control" placeholder="請輸入姓名" required>
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label">聯絡電話 <span class="text-danger">*</span></label>
+                            <input type="tel" id="PhoneNumber" class="form-control" placeholder="09xx-xxx-xxx" required>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-2">🐩 2. 寵物基本資料</h4>
+                    <div class="row mb-2">
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label">寵物姓名 <span class="text-danger">*</span></label>
+                            <input type="text" id="PetName" class="form-control" required>
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label">品種</label>
+                            <input type="text" id="Breed" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 col-md-4 mb-3"> <label class="form-label">性別 <span class="text-danger">*</span></label>
+                            <select id="Gender" class="form-select" required>
+                                <option value="">請選擇...</option>
+                                <option value="公">公</option>
+                                <option value="母">母</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-4 mb-3">
+                            <label class="form-label">是否結紮 <span class="text-danger">*</span></label>
+                            <select id="IsNeutered" class="form-select" required>
+                                <option value="">請選擇...</option>
+                                <option value="true">是</option>
+                                <option value="false">否</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4 mb-3">
+                            <label class="form-label">體重 (KG)</label>
+                            <input type="number" step="0.1" id="Weight" class="form-control" inputmode="decimal">
+                        </div>
+                    </div>
+
+                    <h4 class="mt-2">🏥 3. 健康與個性聲明</h4>
+
+                    <div class="mb-3">
+                        <label class="form-label">病史與特殊狀況</label>
+                        <textarea id="MedicalDetails" class="form-control" rows="3" placeholder="心臟病/癲癇/皮膚病/過敏...若無請填無"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-4 mb-3">
+                            <label class="form-label">目前是否用藥 <span class="text-danger">*</span></label>
+                            <select id="IsTakingMedication" class="form-select" required>
+                                <option value="">請選擇...</option>
+                                <option value="true">是</option>
+                                <option value="false">否</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-8 hidden" id="divMedicationDetails">
+                            <label class="form-label">請說明藥物名稱或用途</label>
+                            <input type="text" id="MedicationDetails" class="form-control" placeholder="例如：心臟病藥、皮膚藥...">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">個性勾選 (可複選)</label>
+                        <div class="d-flex flex-wrap gap-3"> <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="緊張" name="personality" id="p1">
+                                <label class="form-check-label" for="p1">緊張</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="害怕" name="personality" id="p2">
+                                <label class="form-check-label" for="p2">害怕</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="具攻擊性" name="personality" id="p3">
+                                <label class="form-check-label" for="p3">具攻擊性</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="活潑" name="personality" id="p4">
+                                <label class="form-check-label" for="p4">活潑</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="其他" id="chkOther" name="personality">
+                                <label class="form-check-label" for="chkOther">其他</label>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control mt-2 hidden" id="txtOther" placeholder="請說明其他狀況..." style="background-color: var(--soft-pink);">
+                    </div>
+
+                    <h4 class="mt-4">✂️ 4. 服務與同意條款</h4>
+
+                    <label class="form-label">詳細服務契約</label>
+                    <div class="terms-container">
+                        <div class="article-title">第一條　契約目的</div>
+                        <ol class="terms-list">
+                            <li>本契約旨在明確規範委託人之犬貓（以下稱「寵物」）接受美容服務期間，雙方之權利義務與相關注意事項。</li>
+                        </ol>
+
+                        <div class="article-title">第二條　服務內容與費用</div>
+                        <ol class="terms-list">
+                            <li>受託人提供之美容服務包括但不限於：洗澡、剪毛、剃毛、去結、清耳、修指甲、肛門腺清理等。</li>
+                        </ol>
+
+                        <div class="article-title">第三條　寵物健康與安全聲明</div>
+                        <ol class="terms-list">
+                            <li>委託人應如實告知寵物之健康狀況（含心臟病、氣喘、癲癇、皮膚病、過敏、傷口、骨骼問題、攻擊性、咬人、過度緊張等行為問題等）。</li>
+                            <li>飼主確認所填寫之寵物資料皆屬實，若有隱瞞病史、攻擊行為或其他特殊狀況，導致寵物於美容過程中發生意外、惡化、受傷、死亡，受託人不負賠償責任。</li>
+                            <li>年老、高齡、疾病、或情緒易激動之寵物於美容過程中可能增加風險，委託人同意自行承擔相關風險。</li>
+                        </ol>
+
+                        <div class="article-title">第四條　美容過程與風險說明</div>
+                        <ol class="terms-list">
+                            <li>美容過程若需進行拉結、去毛球、大範圍打薄等特殊處理，可能造成外觀不均或皮膚敏感紅腫造成搔癢過敏或寵物躁動導致刮傷、剪毛不均、輕微擦傷、指甲出血，委託人同意此屬美容過程常見風險。</li>
+                            <li>毛孩若有打結、皮膚問題、跳蚤、壁蝨或其他特殊狀況，美容方式（如剃毛）將由美容師依專業判斷處理，飼主同意不得事後爭議。</li>
+                            <li>若寵物於美容過程中有攻擊行為導致工作人員受傷，委託人應負相關責任。</li>
+                            <li>受託人若發現寵物身體異常（腫塊、皮膚病變、外傷等），得主動告知，但不負醫療責任。</li>
+                            <li>若寵物於美容過程中出現攻擊、強烈抗拒、過度緊迫，為確保人員與寵物安全，本店有權中止服務，並依實際完成項目酌收費用。</li>
+                            <li>貴重物品（項圈、吊牌、衣物等）如有遺失或損壞，本店恕不負賠償責任。</li>
+                        </ol>
+
+                        <div class="article-title">第五條　緊急醫療處理</div>
+                        <ol class="terms-list">
+                            <li>若美容過程中寵物突然出現緊急狀況，受託人得立即將寵物送往鄰近獸醫院。所有醫療費用由委託人負擔。</li>
+                            <li>受託人將盡最大努力通知委託人，但在危急情況下得先行處理。</li>
+                        </ol>
+
+                        <div class="article-title">第六條　接送規範</div>
+                        <ol class="terms-list">
+                            <li>委託人應於通知時間內接送寵物。超時將依店內規定收取照顧費用。</li>
+                        </ol>
+
+                        <div class="article-title">第七條　物品遺失與責任限制</div>
+                        <ol class="terms-list">
+                            <li>因不可抗力（如地震、火災、突發疾病等）造成寵物傷亡者，受託人不負賠償責任。</li>
+                            <li>若因受託人重大過失導致寵物受傷，受託人同意負合理費用範圍內之責任，但賠償總額以美容費用之三倍為上限。</li>
+                        </ol>
+
+                        <div class="article-title">第八條　契約生效與爭議處理</div>
+                        <ol class="terms-list">
+                            <li>若雙方發生爭議，應先以協商方式處理；協商不成時，以受託人營業所所在地法院為第一審管轄法院。</li>
+                        </ol>
+
+                        <p class="final-note">*本同意書適用於日後每次來店服務，若資料或健康狀況有異動，飼主應主動告知。</p>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" id="PhotoConsent">
+                        <label class="form-check-label" for="PhotoConsent">
+                            我同意店家拍攝寵物照片並於社群平台公開使用。
+                        </label>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input class="form-check-input" type="checkbox" id="IsAgreed" required>
+                        <label class="form-check-label text-danger fw-bold" for="IsAgreed">
+                            我已詳閱並同意上述所有服務條款與免責聲明。
+                        </label>
+                    </div>
+
+                    <input type="hidden" id="ServiceType" value="未指定">
+
+                    <div class="text-center">
+                        <button type="button" class="btn btn-submit" onclick="submitForm()">同意並預約</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ★★★ 請記得更換成你的 Worker 網址 ★★★
+    const API_URL = "https://petsalon-api.zeabur.app/";
+
+    // 1. 控制「個性-其他」輸入框
+    document.getElementById('chkOther').addEventListener('change', function() {
+        var txtInput = document.getElementById('txtOther');
+        if(this.checked) {
+            txtInput.classList.remove('hidden');
+            txtInput.focus();
+        } else {
+            txtInput.classList.add('hidden');
+            txtInput.value = '';
+        }
+    });
+
+    // 2. 控制「用藥說明」輸入框
+    document.getElementById('IsTakingMedication').addEventListener('change', function() {
+        var divDetails = document.getElementById('divMedicationDetails');
+        var inputDetails = document.getElementById('MedicationDetails');
+
+        if(this.value === 'true') {
+            divDetails.classList.remove('hidden');
+            inputDetails.focus();
+        } else {
+            divDetails.classList.add('hidden');
+            inputDetails.value = '';
+        }
+    });
+
+    // 3. 送出表單
+    async function submitForm() {
+        let traits = [];
+        document.querySelectorAll('input[name="personality"]:checked').forEach(el => traits.push(el.value));
+        const otherTrait = document.getElementById('txtOther').value;
+        if (document.getElementById('chkOther').checked && otherTrait) {
+            traits = traits.filter(t => t !== '其他'); 
+            traits.push(otherTrait); 
+        }
+
+        const data = {
+            OwnerName: document.getElementById('OwnerName').value,
+            PhoneNumber: document.getElementById('PhoneNumber').value,
+            PetName: document.getElementById('PetName').value,
+            Breed: document.getElementById('Breed').value,
+            Gender: document.getElementById('Gender').value,
+            IsNeutered: document.getElementById('IsNeutered').value,
+            Weight: document.getElementById('Weight').value ? parseFloat(document.getElementById('Weight').value) : null,
+            MedicalDetails: document.getElementById('MedicalDetails').value,
+            IsTakingMedication: document.getElementById('IsTakingMedication').value,
+            MedicationDetails: document.getElementById('MedicationDetails').value,
+            Personality: traits.join(','),
+            ServiceType: document.getElementById('ServiceType').value,
+            PhotoConsent: document.getElementById('PhotoConsent').checked,
+            IsAgreed: document.getElementById('IsAgreed').checked,
+            HasMedicalHistory: document.getElementById('MedicalDetails').value.trim() !== "" ? "true" : "false"
+        };
+
+        if(!data.OwnerName || !data.PhoneNumber || !data.PetName || !data.Gender || !data.IsNeutered || !data.IsTakingMedication || !data.IsAgreed) {
+            alert("請檢查必填欄位 (*) 是否皆已填寫！");
+            return;
+        }
+
+        try {
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = "傳送中...";
+            btn.disabled = true;
+
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert("🎉 預約成功！我們將盡快與您聯繫確認時間。");
+                location.reload(); 
+            } else {
+                const err = await res.json();
+                alert("❌ 錯誤：" + (err.error || "未知錯誤"));
+            }
+        } catch (e) {
+            console.error(e);
+            alert("❌ 連線錯誤，請檢查網路");
+        } finally {
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = "同意並預約";
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
