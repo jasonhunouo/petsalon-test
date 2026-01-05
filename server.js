@@ -1,102 +1,140 @@
 const express = require('express');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
-const { Client } = require('pg');
+require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// 1. 設定 CORS (允許跨域請求)
 app.use(cors());
 app.use(express.json());
 
-// 2. 資料庫連線設定 (自動讀取 Zeabur 的環境變數)
-// 如果沒有 DATABASE_URL，會嘗試讀取個別變數
-const dbConfig = {
-  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_CONNECTION_STRING,
-  ssl: {
-    rejectUnauthorized: false // Zeabur 的資料庫通常需要 SSL
-  }
-};
+// MySQL 連接池
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'mysql',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'password',
+  database: process.env.DB_NAME || 'petsalon',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-const client = new Client(dbConfig);
-
-// 3. 啟動伺服器並連接資料庫
-async function startServer() {
+// 初始化數據庫表
+async function initDatabase() {
+  const connection = await pool.getConnection();
   try {
-    await client.connect();
-    console.log("✅ 資料庫連線成功");
-
-    // 自動建立資料表 (PostgreSQL 語法)
-    await client.query(`
+    await connection.query(`
       CREATE TABLE IF NOT EXISTS bookings (
-        id SERIAL PRIMARY KEY,
-        owner_name TEXT,
-        phone_number TEXT,
-        pet_name TEXT,
-        breed TEXT,
-        gender TEXT,
-        is_neutered INTEGER,
-        weight REAL,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        owner_name VARCHAR(100) NOT NULL,
+        phone_number VARCHAR(20) NOT NULL,
+        pet_name VARCHAR(100) NOT NULL,
+        breed VARCHAR(100),
+        gender VARCHAR(10) NOT NULL,
+        is_neutered BOOLEAN NOT NULL,
+        weight DECIMAL(5,2),
         medical_details TEXT,
-        is_taking_medication INTEGER,
-        medication_details TEXT,
-        personality TEXT,
-        service_type TEXT,
-        photo_consent INTEGER,
-        is_agreed INTEGER,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+        is_taking_medication BOOLEAN NOT NULL,
+        medication_details VARCHAR(255),
+        personality VARCHAR(255),
+        service_type VARCHAR(100),
+        photo_consent BOOLEAN DEFAULT FALSE,
+        is_agreed BOOLEAN NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
     `);
-    console.log("✅ 資料表檢查/建立完成");
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-
-  } catch (err) {
-    console.error("❌ 啟動失敗:", err);
+    console.log('✅ 數據庫表已初始化');
+  } catch (error) {
+    console.error('❌ 初始化數據庫失敗:', error);
+  } finally {
+    connection.release();
   }
 }
 
-startServer();
-
-// 4. API 路由
-app.get('/', (req, res) => {
-  res.send('Pet Salon API is Running on Zeabur! 🐶');
+// 健康檢查
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
+// 提交預約表單
 app.post('/', async (req, res) => {
+  const connection = await pool.getConnection();
   try {
-    const data = req.body;
-    
-    // 轉換布林值
-    const isNeutered = data.IsNeutered === "true" || data.IsNeutered === true ? 1 : 0;
-    const isTakingMedication = data.IsTakingMedication === "true" || data.IsTakingMedication === true ? 1 : 0;
-    const photoConsent = data.PhotoConsent === "true" || data.PhotoConsent === true ? 1 : 0;
-    const isAgreed = data.IsAgreed === "true" || data.IsAgreed === true ? 1 : 0;
+    const {
+      OwnerName,
+      PhoneNumber,
+      PetName,
+      Breed,
+      Gender,
+      IsNeutered,
+      Weight,
+      MedicalDetails,
+      IsTakingMedication,
+      MedicationDetails,
+      Personality,
+      ServiceType,
+      PhotoConsent,
+      IsAgreed
+    } = req.body;
+
+    // 驗證必填字段
+    if (!OwnerName || !PhoneNumber || !PetName || !Gender || !IsNeutered || !IsTakingMedication || !IsAgreed) {
+      return res.status(400).json({ error: '缺少必填字段' });
+    }
 
     const query = `
       INSERT INTO bookings (
-        owner_name, phone_number, pet_name, breed, gender, 
-        is_neutered, weight, medical_details, is_taking_medication, 
-        medication_details, personality, service_type, photo_consent, is_agreed
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-      RETURNING *;
+        owner_name, phone_number, pet_name, breed, gender, is_neutered, weight,
+        medical_details, is_taking_medication, medication_details, personality,
+        service_type, photo_consent, is_agreed
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
-      data.OwnerName, data.PhoneNumber, data.PetName, data.Breed || "", data.Gender,
-      isNeutered, data.Weight || 0, data.MedicalDetails || "", isTakingMedication,
-      data.MedicationDetails || "", data.Personality || "", data.ServiceType || "未指定",
-      photoConsent, isAgreed
+      OwnerName,
+      PhoneNumber,
+      PetName,
+      Breed || null,
+      Gender,
+      IsNeutered === 'true' ? 1 : 0,
+      Weight || null,
+      MedicalDetails || null,
+      IsTakingMedication === 'true' ? 1 : 0,
+      MedicationDetails || null,
+      Personality || null,
+      ServiceType || null,
+      PhotoConsent ? 1 : 0,
+      IsAgreed ? 1 : 0
     ];
 
-    const result = await client.query(query, values);
-
-    res.json({ success: true, result: result.rows[0] });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    await connection.query(query, values);
+    res.json({ success: true, message: '預約已保存' });
+  } catch (error) {
+    console.error('❌ 保存預約失敗:', error);
+    res.status(500).json({ error: '保存失敗' });
+  } finally {
+    connection.release();
   }
+});
+
+// 獲取所有預約（管理用）
+app.get('/bookings', async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query('SELECT * FROM bookings ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error('❌ 查詢失敗:', error);
+    res.status(500).json({ error: '查詢失敗' });
+  } finally {
+    connection.release();
+  }
+});
+
+const PORT = process.env.PORT || 8080;
+
+// 啟動服務器
+app.listen(PORT, async () => {
+  console.log(`🚀 API 服務運行在 http://localhost:${PORT}`);
+  await initDatabase();
 });
