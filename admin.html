@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心語米寵物美容 - 管理後台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-coral: #F28C8C;
+            --soft-pink: #FFF0F2;
+            --warm-cream: #FFF9E6;
+            --warm-brown: #6D4C41;
+        }
+
+        body {
+            background-color: var(--soft-pink);
+            color: var(--warm-brown);
+            font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--primary-coral);
+            box-shadow: 0 2px 10px rgba(242, 140, 140, 0.2);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .container-main {
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            border: 2px solid var(--primary-coral);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(242, 140, 140, 0.1);
+        }
+
+        .card-header {
+            background-color: var(--primary-coral);
+            color: white;
+            border-radius: 13px 13px 0 0 !important;
+            font-weight: bold;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: var(--warm-cream);
+            color: var(--warm-brown);
+            border-color: var(--primary-coral);
+            font-weight: bold;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(242, 140, 140, 0.1);
+        }
+
+        .btn-sm {
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .btn-edit {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+            border: none;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #da190b;
+            color: white;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            border: 2px solid var(--primary-coral);
+            border-radius: 10px;
+            padding: 10px 15px;
+        }
+
+        .search-box button {
+            background-color: var(--primary-coral);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 30px;
+            font-weight: bold;
+        }
+
+        .search-box button:hover {
+            background-color: #E57373;
+        }
+
+        .modal-header {
+            background-color: var(--primary-coral);
+            color: white;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: var(--warm-brown);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #FAD0C4;
+            border-radius: 8px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-coral);
+            box-shadow: 0 0 8px rgba(242, 140, 140, 0.4);
+        }
+
+        .badge-status {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-coral), #E57373);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stats-card h3 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .stats-card p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .table {
+                font-size: 0.85rem;
+            }
+
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <span class="navbar-brand">🌸 心語米寵物美容 - 管理後台</span>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="container container-main">
+        <!-- 統計卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h3 id="totalBookings">0</h3>
+                    <p>總預約數</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h3 id="todayBookings">0</h3>
+                    <p>今日預約</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h3 id="thisMonthBookings">0</h3>
+                    <p>本月預約</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="search-box">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="搜尋飼主名稱、電話或寵物名稱...">
+                        <button class="btn" type="button" onclick="searchBookings()">搜尋</button>
+                        <button class="btn btn-secondary" type="button" onclick="loadBookings()">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 預約表格 -->
+        <div class="card">
+            <div class="card-header">
+                📋 預約列表
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>飼主名稱</th>
+                                <th>電話</th>
+                                <th>寵物名稱</th>
+                                <th>品種</th>
+                                <th>性別</th>
+                                <th>預約時間</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTable">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">加載中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯模態框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">編輯預約</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">飼主姓名</label>
+                                <input type="text" class="form-control" id="editOwnerName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">聯絡電話</label>
+                                <input type="tel" class="form-control" id="editPhoneNumber" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">寵物姓名</label>
+                                <input type="text" class="form-control" id="editPetName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">品種</label>
+                                <input type="text" class="form-control" id="editBreed">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">性別</label>
+                                <select class="form-select" id="editGender" required>
+                                    <option value="公">公</option>
+                                    <option value="母">母</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">是否結紮</label>
+                                <select class="form-select" id="editIsNeutered" required>
+                                    <option value="1">是</option>
+                                    <option value="0">否</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">體重 (KG)</label>
+                                <input type="number" step="0.1" class="form-control" id="editWeight">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">病史與特殊狀況</label>
+                            <textarea class="form-control" id="editMedicalDetails" rows="2"></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">目前是否用藥</label>
+                                <select class="form-select" id="editIsTakingMedication" required>
+                                    <option value="1">是</option>
+                                    <option value="0">否</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">藥物說明</label>
+                                <input type="text" class="form-control" id="editMedicationDetails">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">個性</label>
+                            <input type="text" class="form-control" id="editPersonality">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="editPhotoConsent">
+                            <label class="form-check-label" for="editPhotoConsent">
+                                同意拍攝照片
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="editIsAgreed" required>
+                            <label class="form-check-label" for="editIsAgreed">
+                                已同意服務條款
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEdit()" style="background-color: var(--primary-coral); border: none;">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認模態框 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">確認刪除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>確定要刪除這筆預約嗎？此操作無法撤銷。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">刪除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = "https://petsalon-api.zeabur.app";
+        let bookings = [];
+        let deleteId = null;
+        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+        // 加載所有預約
+        async function loadBookings() {
+            try {
+                const response = await fetch(`${API_URL}/bookings`);
+                bookings = await response.json();
+                renderTable(bookings);
+                updateStats();
+            } catch (error) {
+                console.error('加載失敗:', error);
+                alert('加載預約失敗');
+            }
+        }
+
+        // 搜尋預約
+        async function searchBookings() {
+            const keyword = document.getElementById('searchInput').value;
+            if (!keyword) {
+                loadBookings();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/search/bookings?keyword=${encodeURIComponent(keyword)}`);
+                const results = await response.json();
+                renderTable(results);
+            } catch (error) {
+                console.error('搜尋失敗:', error);
+                alert('搜尋失敗');
+            }
+        }
+
+        // 渲染表格
+        function renderTable(data) {
+            const tbody = document.getElementById('bookingsTable');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">沒有預約記錄</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(booking => `
+                <tr>
+                    <td>${booking.id}</td>
+                    <td>${booking.owner_name}</td>
+                    <td>${booking.phone_number}</td>
+                    <td>${booking.pet_name}</td>
+                    <td>${booking.breed || '-'}</td>
+                    <td>${booking.gender}</td>
+                    <td>${new Date(booking.created_at).toLocaleString('zh-TW')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-edit" onclick="editBooking(${booking.id})">編輯</button>
+                        <button class="btn btn-sm btn-delete" onclick="deleteBooking(${booking.id})">刪除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 編輯預約
+        async function editBooking(id) {
+            try {
+                const response = await fetch(`${API_URL}/bookings/${id}`);
+                const booking = await response.json();
+                
+                document.getElementById('editId').value = booking.id;
+                document.getElementById('editOwnerName').value = booking.owner_name;
+                document.getElementById('editPhoneNumber').value = booking.phone_number;
+                document.getElementById('editPetName').value = booking.pet_name;
+                document.getElementById('editBreed').value = booking.breed || '';
+                document.getElementById('editGender').value = booking.gender;
+                document.getElementById('editIsNeutered').value = booking.is_neutered;
+                document.getElementById('editWeight').value = booking.weight || '';
+                document.getElementById('editMedicalDetails').value = booking.medical_details || '';
+                document.getElementById('editIsTakingMedication').value = booking.is_taking_medication;
+                document.getElementById('editMedicationDetails').value = booking.medication_details || '';
+                document.getElementById('editPersonality').value = booking.personality || '';
+                document.getElementById('editPhotoConsent').checked = booking.photo_consent;
+                document.getElementById('editIsAgreed').checked = booking.is_agreed;
+                
+                editModal.show();
+            } catch (error) {
+                console.error('加載預約失敗:', error);
+                alert('加載預約失敗');
+            }
+        }
+
+        // 保存編輯
+        async function saveEdit() {
+            const id = document.getElementById('editId').value;
+            const data = {
+                owner_name: document.getElementById('editOwnerName').value,
+                phone_number: document.getElementById('editPhoneNumber').value,
+                pet_name: document.getElementById('editPetName').value,
+                breed: document.getElementById('editBreed').value,
+                gender: document.getElementById('editGender').value,
+                is_neutered: document.getElementById('editIsNeutered').value === '1',
+                weight: document.getElementById('editWeight').value,
+                medical_details: document.getElementById('editMedicalDetails').value,
+                is_taking_medication: document.getElementById('editIsTakingMedication').value === '1',
+                medication_details: document.getElementById('editMedicationDetails').value,
+                personality: document.getElementById('editPersonality').value,
+                service_type: '未指定',
+                photo_consent: document.getElementById('editPhotoConsent').checked,
+                is_agreed: document.getElementById('editIsAgreed').checked
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/bookings/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('✅ 預約已更新');
+                    editModal.hide();
+                    loadBookings();
+                } else {
+                    alert('❌ 更新失敗');
+                }
+            } catch (error) {
+                console.error('保存失敗:', error);
+                alert('保存失敗');
+            }
+        }
+
+        // 刪除預約
+        function deleteBooking(id) {
+            deleteId = id;
+            deleteModal.show();
+        }
+
+        // 確認刪除
+        async function confirmDelete() {
+            try {
+                const response = await fetch(`${API_URL}/bookings/${deleteId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('✅ 預約已刪除');
+                    deleteModal.hide();
+                    loadBookings();
+                } else {
+                    alert('❌ 刪除失敗');
+                }
+            } catch (error) {
+                console.error('刪除失敗:', error);
+                alert('刪除失敗');
+            }
+        }
+
+        // 更新統計信息
+        function updateStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            const todayCount = bookings.filter(b => new Date(b.created_at) >= today).length;
+            const monthCount = bookings.filter(b => new Date(b.created_at) >= monthStart).length;
+
+            document.getElementById('totalBookings').textContent = bookings.length;
+            document.getElementById('todayBookings').textContent = todayCount;
+            document.getElementById('thisMonthBookings').textContent = monthCount;
+        }
+
+        // 頁面加載時獲取數據
+        loadBookings();
+
+        // 搜尋框回車事件
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBookings();
+            }
+        });
+    </script>
+</body>
+</html>
