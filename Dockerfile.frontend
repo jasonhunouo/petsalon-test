@@ -1,0 +1,11 @@
+FROM caddy:2-alpine
+
+LABEL "language"="static"
+
+WORKDIR /usr/share/caddy
+
+COPY index.html .
+COPY admin.html .
+COPY Caddyfile /etc/caddy/Caddyfile
+
+EXPOSE 8080
